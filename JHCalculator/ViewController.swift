@@ -22,10 +22,15 @@ final class ViewController: UIViewController {
         }
     }
     //MARK: 이넘
-    private var operationClickClear: Bool = false
+    private var operatorClicked: Bool = false
+    
     private var previousValue: Double = 0
     private var storedValue: Double = 0
-    private var operatorStore: OperatorStore = .empty
+    
+    private var currentOperator: OperatorStore = .empty
+    private var storedOperator: OperatorStore = .empty
+    
+    private var isMinus: Bool = false
     private var isDotted: Bool = false
     private var isFirstClicked: Bool = false
     //MARK: 스토리보드 연결된 변수들
@@ -33,12 +38,8 @@ final class ViewController: UIViewController {
     @IBOutlet private var numberUIButtons: [UIButton]!
     @IBOutlet private var operatorUIButtons: [UIButton]!
     @IBOutlet private weak var resultUILabel: UILabel!
-    @IBAction private func allClearUIButtonAction(_ sender: Any) {
-        resultUILabel.text = "0"
-        operatorStore = .empty
-        previousValue = 0
-        isDotted = false
-    }
+    @IBOutlet private weak var toggleMinusButton: UIButton!
+    @IBOutlet private weak var percentButton: UIButton!
     
     // MARK:- Life Cycle
     override func viewDidLoad() {
@@ -46,33 +47,63 @@ final class ViewController: UIViewController {
         resultUILabel.text = "0";
         
         allClearUIButton.layer.cornerRadius = 30
+        toggleMinusButton.layer.cornerRadius = 30
+        percentButton.layer.cornerRadius = 30
         for numberUIButton in numberUIButtons {
             numberUIButton.layer.cornerRadius = 30
         }
         for operatorUIButton in operatorUIButtons {
             operatorUIButton.layer.cornerRadius = 30
         }
+        
     }
 }
 
 extension ViewController {
-    func resetStatus() {
-        operatorStore = .empty
+    func clearStatus() {
+        currentOperator = .empty
         isDotted = false
+        isMinus = false
+    }
+    
+    func uiLabelValueToDouble(_ resultUILabel: UILabel) -> Double {
+        guard let value = resultUILabel.text else {
+            return 0.0
+        }
+        
+        return Double(value)!
     }
     
     func updateResultUILabel(_ button: Int) {
-        guard let value = resultUILabel.text else { return }
-        if Double(value) == 0 || operatorStore.isEmpty() {
-            if isDotted {
-                resultUILabel.text = value + String(button)
-            } else {
-                resultUILabel.text = String(button)
-            }
+        if operatorClicked {
+            resultUILabel.text = String(button)
+            operatorClicked = false
         } else {
-            resultUILabel.text = value + String(button)
+            let realValue = uiLabelValueToDouble(resultUILabel)
+            guard let stringValue: String = resultUILabel.text else { return }
+            
+            if realValue == 0 {
+                if isDotted {
+                    resultUILabel.text = stringValue + String(button)
+                } else {
+                    resultUILabel.text = String(button)
+                }
+            } else {
+                resultUILabel.text = stringValue + String(button)
+            }
         }
-        isDotted = true
+    }
+    
+    func calculateWithOperator(currentValue: Double, clickedOperator: OperatorStore) {
+        if currentOperator.isEmpty() {
+            previousValue = currentValue
+        } else {
+            previousValue = calculateValue(value1: previousValue, operatorStore: clickedOperator, value2: currentValue)
+            resultUILabel.text = formattingResult(previousValue)
+        }
+        currentOperator = clickedOperator
+        operatorClicked = true
+        isFirstClicked = true
     }
     
     func calculateValue(value1: Double, operatorStore: OperatorStore, value2: Double) -> Double {
@@ -90,34 +121,86 @@ extension ViewController {
         }
     }
     
-    func formattingResult(result: Double) -> String {
+    func formattingResult(_ result: Double) -> String {
         let intResult = Double(Int(result))
         if result == intResult {
             return String(Int(result))
         } else {
-            return String(result)
+            //return result.removeZerosFromEnd()
+            return result.forTrailingZero()
         }
+    }
+}
+
+extension Double {
+    func removeZerosFromEnd() -> String {
+        let formatter = NumberFormatter()
+        let number = NSNumber(value: self)
+        formatter.minimumFractionDigits = 0
+        formatter.maximumFractionDigits = 8
+        return String(formatter.string(from: number) ?? "")
+    }
+    
+    func forTrailingZero() -> String {
+        return String(format: "%g", self)
     }
 }
 
 // MARK:- action들
 extension ViewController {
+    @IBAction private func allClearUIButtonAction(_ sender: Any) {
+        resultUILabel.text = "0"
+        currentOperator = .empty
+        storedOperator = .empty
+        previousValue = 0
+        operatorClicked = false
+        isDotted = false
+        isMinus = false
+    }
+    
+    @IBAction private func toggleMinusButtonAction(_ sender: Any) {
+        let stringValue = resultUILabel.text!
+        let realValue = uiLabelValueToDouble(resultUILabel)
+        
+        if realValue == 0 {
+            if isMinus {
+                resultUILabel.text = stringValue.replacingOccurrences(of: "-", with: "")
+            } else {
+                resultUILabel.text = "-" + stringValue
+            }
+            
+            isMinus.toggle()
+        } else if realValue < 0 {
+            resultUILabel.text = formattingResult(realValue * -1)
+        } else {
+            resultUILabel.text = "-" + stringValue
+        }
+    }
+    
+    @IBAction func percentButtonAction(_ sender: Any) {
+        let currentValue = uiLabelValueToDouble(resultUILabel)
+        previousValue = calculateValue(value1: currentValue, operatorStore: .divide, value2: 100)
+        resultUILabel.text = formattingResult(previousValue)
+    }
+    
     @IBAction func dotUIButtonAction(_ sender: Any) {
         guard isDotted == false, let value = resultUILabel.text else { return }
         resultUILabel.text = value + "."
         isDotted = true
     }
+    
     @IBAction func zeroUIButtonAction(_ sender: Any) {
-        guard let value = resultUILabel.text else { return }
-        if Double(value) != 0 {
-            resultUILabel.text = value + "0"
+        let realValue = uiLabelValueToDouble(resultUILabel)
+        guard let stringValue: String = resultUILabel.text else { return }
+        
+        if realValue != 0 {
+            resultUILabel.text = stringValue + "0"
         } else {
             if isDotted {
-                resultUILabel.text = value + "0"
+                resultUILabel.text = stringValue + "0"
             }
         }
     }
-    
     
     @IBAction func oneUIButtonAction(_ sender: Any) {
         updateResultUILabel(1)
@@ -147,72 +230,39 @@ extension ViewController {
         updateResultUILabel(9)
     }
     @IBAction func divideUIButtonAction(_ sender: Any) {
-        guard let value = resultUILabel.text else { return }
-        let currentValue = Double(value)
-        
-        if operatorStore.isEmpty() {
-            previousValue = currentValue!
-        } else {
-            previousValue = calculateValue(value1: previousValue, operatorStore: operatorStore, value2: currentValue!)
-            resultUILabel.text = formattingResult(result: previousValue)
-        }
-        operatorStore = .divide
-        isDotted = false
+        let currentValue = uiLabelValueToDouble(resultUILabel)
+        calculateWithOperator(currentValue: currentValue, clickedOperator: .divide)
     }
+    
     @IBAction func multipleUIButtonAction(_ sender: Any) {
-        guard let value = resultUILabel.text else { return }
-        let currentValue = Double(value)
-        
-        if operatorStore.isEmpty() {
-            previousValue = currentValue!
-        } else {
-            previousValue = calculateValue(value1: previousValue, operatorStore: operatorStore, value2: currentValue!)
-            resultUILabel.text = formattingResult(result: previousValue)
-        }
-        operatorStore = .multiply
-        isDotted = false
+        let currentValue = uiLabelValueToDouble(resultUILabel)
+        calculateWithOperator(currentValue: currentValue, clickedOperator: .multiply)
     }
     
     @IBAction func minusUIButtonAction(_ sender: Any) {
-        guard let value = resultUILabel.text else { return }
-        let currentValue = Double(value)
-        
-        if operatorStore.isEmpty() {
-            previousValue = currentValue!
-        } else {
-            previousValue = calculateValue(value1: previousValue, operatorStore: operatorStore, value2: currentValue!)
-            resultUILabel.text = formattingResult(result: previousValue)
-        }
-        operatorStore = .minus
-        isDotted = false
+        let currentValue = uiLabelValueToDouble(resultUILabel)
+        calculateWithOperator(currentValue: currentValue, clickedOperator: .minus)
     }
+    
     @IBAction func plusUIButtonAction(_ sender: Any) {
-        guard let value = resultUILabel.text else { return }
-        let currentValue = Double(value)
-        
-        if operatorStore.isEmpty() {
-            previousValue = currentValue!
-        } else {
-            previousValue = calculateValue(value1: previousValue, operatorStore: operatorStore, value2: currentValue!)
-            resultUILabel.text = formattingResult(result: previousValue)
-        }
-        operatorStore = .plus
-        isDotted = false
+        let currentValue = uiLabelValueToDouble(resultUILabel)
+        calculateWithOperator(currentValue: currentValue, clickedOperator: .plus)
     }
+    
     @IBAction func isUIButtonAction(_ sender: Any) {
-        guard let value = resultUILabel.text else { return }
-        let currentValue = Double(value)
+        let currentValue = uiLabelValueToDouble(resultUILabel)
         
         if isFirstClicked {
-            storedValue = Double(value)!
-            previousValue = calculateValue(value1: previousValue, operatorStore: operatorStore, value2: currentValue!)
-            resultUILabel.text = formattingResult(result: previousValue)
+            storedValue = currentValue
+            storedOperator = currentOperator
             isFirstClicked = false
-        } else {
-            previousValue = calculateValue(value1: previousValue, operatorStore: operatorStore, value2: storedValue)
-            resultUILabel.text = formattingResult(result: previousValue)
         }
         
+        previousValue = calculateValue(value1: previousValue, operatorStore: storedOperator, value2: storedValue)
+        resultUILabel.text = formattingResult(previousValue)
+        
+        operatorClicked = true
+        clearStatus()
     }
     
 }

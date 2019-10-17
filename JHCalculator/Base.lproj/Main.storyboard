@@ -210,6 +210,9 @@
                                 <state key="normal" title="+/-">
                                     <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
+                                <connections>
+                                    <action selector="toggleMinusButtonAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="0KG-fJ-1kO"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="pYO-OI-BoD">
                                 <rect key="frame" x="213" y="235" width="60" height="60"/>
@@ -219,6 +222,9 @@
                                 <state key="normal" title="%">
                                     <color key="titleColor" white="0.0" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                 </state>
+                                <connections>
+                                    <action selector="percentButtonAction:" destination="BYZ-38-t0r" eventType="touchUpInside" id="swf-KF-Haa"/>
+                                </connections>
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="tG3-yM-dkq">
                                 <rect key="frame" x="292" y="235" width="60" height="60"/>
@@ -250,7 +256,9 @@
                     </view>
                     <connections>
                         <outlet property="allClearUIButton" destination="NgS-HD-oUl" id="3DF-3N-41q"/>
+                        <outlet property="percentButton" destination="pYO-OI-BoD" id="TIP-1Y-yl9"/>
                         <outlet property="resultUILabel" destination="elK-wR-Xji" id="h4X-2N-ZGk"/>
+                        <outlet property="toggleMinusButton" destination="wS4-rE-S0Z" id="6wf-hF-aSM"/>
                         <outletCollection property="numberUIButtons" destination="tag-6l-oPi" collectionClass="NSMutableArray" id="HRy-1j-f4K"/>
                         <outletCollection property="numberUIButtons" destination="y2w-6e-OL8" collectionClass="NSMutableArray" id="RUc-zp-fa3"/>
                         <outletCollection property="numberUIButtons" destination="orL-9A-mKe" collectionClass="NSMutableArray" id="Ow0-n4-yMb"/>
