@@ -2,17 +2,17 @@
 
 ### 더하기
 
-![](images/plus.gif){: width="50%" height="50%"}
+![](images/plus.gif)
 
 ### 나누기
 
-![](images/divide.gif){: width="50%" height="50%"}
+![](images/divide.gif)
 
 ### 소수점 계산
 
-![](images/dot.gif){: width="50%" height="50%"}
+![](images/dot.gif)
 
 ### 부호 전환
 
-![](images/toggleMinus.gif){: width="50%" height="50%"}
+![](images/toggleMinus.gif)
 
